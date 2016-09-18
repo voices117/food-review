@@ -1,0 +1,70 @@
+% Chapter Template
+
+\chapter{Otras ideas} % Main chapter title
+
+\label{other_ideas} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+%----------------------------------------------------------------------------------------
+%   SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Motivaci\'on}
+
+Algunas ideas que no se llegaron a implementar, pero que se van a probar mas adelante, son mezcla
+de algoritmos que se encontraron en internet o papers, y que dieron buenos resultados.
+
+Algunos son un poco complejos de implementar bien (o ajustar), por lo que se ir\'an investigando
+de a poco.
+
+%-----------------------------------
+%   SUBSECTION 1
+%-----------------------------------
+
+\subsection{NN}
+
+Teniendo en cienta que lo que buscamos es ``transformar'' el sentimiento del usuario en una
+puntuaci\'on, se podr\'ia aplicar alg\'un algoritmo que transforme oraciones o palabras en una
+interpretaci\'on de sentimientos, por ejemplo\\
+
+    la peor experiencia de mi vida
+    0   -5       0       0  0   2
+
+siendo los numeros negativos cuando el sentimiento es negativo, y positivo de otra forma.
+
+Luego una red neuronal podr\'ia interpretar luego las combinaciones de dichos sentimientos y obtener
+un valor final.
+
+%-----------------------------------
+%   SUBSECTION 2
+%-----------------------------------
+\subsection{CNN}
+
+Una posible soluci\'on seria utilizar CNN. La raz\'on es que debido al uso de feature maps, podr\'ian
+lograr una buena interpretaci\'on de las palabras en sus contextos y aprender ciertos patrones que
+derivan expresan el puntaje que otorgar\'ia el usuario, sin importar la ubicaci\'on de los mismos
+en el texto.
+
+El \'unico problema ser\'ia lidiar con una cantidad de entradas variable (cada texto tiene un largo)
+distinto. Algunas opciones para esto son:
+
+\begin{itemize}
+\setlength\itemsep{0em}
+   \item tomar el texto mas largo del set de entrenamiento y utilizarlo como valor m\'aximo (y luego
+         paddear los textos mas cortos y recortar los mas largos)
+   \item hacer ``wrap around''
+   \item utilizar alguna herramienta como ``Doc2Vec'' para convertir los textos a vectores. \cite{doc2vec}
+\end{itemize}
+
+Los textos se pueden ingresar a la red en forma de bytes (caracter por caracter) o en alguna
+representaci\'on distinta, por ejemplo, vectores obtenidos por ``word2vec'', una conversi\'on mas
+simple de valores que indican el sentiemiento de cada palabra, etc. \cite{CNN_for_nlp}
+
+%-----------------------------------
+%   SUBSECTION 3
+%-----------------------------------
+
+\subsection{RNN}
+
+Las RNN tienen la ventaja de poder trabajar con entradas de tama\~no variable, y poder recordar
+contextos de manera m\'as inteligente que las CNN. Es por esto que se va a intentar probar de
+implementar una para realizar el sentiment analysis. \cite{LSTM_sentiment_analysis}
