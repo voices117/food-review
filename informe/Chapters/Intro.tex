@@ -103,3 +103,17 @@ también nos permite generalizar mas facilmente.
 Por ejemplo, si un cliente hablara de como llega su producto, quizas se refiera en estos reviews a la palabra ``shipping''. O quizas hable de que el barco llego lento y mencione ``ship''.Si bien son distintas, tienen una raiz que podría ser ``ship''. Lo mismo sucede con conjugaciones de verbos. Si alguien menciona que disfruto la comida puede usar cualquier tiempo verbal. ``Enjoy'' ``Enjoyed'' ``Enjoying'', y carece de sentido tratar cada palabra por separado. Los sexos en sustantivos, y otras formas lingüisticas también llevan a otros arboles de palabras, que todas refieren al mismo concepto, o a la misma raiz.
 
 Es interesantes marcar que la raiz que usemos para agrupar, no tiene porque ser necesariamente una palabra. Esto es util porque en la práctica permite simplificar los algoritmos de stemming. \cite{word_stemming}
+
+%----------------------------------------------------------------------------------------
+%   SECTION 3
+%----------------------------------------------------------------------------------------
+
+\section{Expandiendo el set de datos}
+
+Por lo general, obtener mas datos ayuda a mejorar el desempe\~no del algoritmo. Si bien no es
+trivial generar texto o modificar ejemplos para obtener nuevos, al considerar el problema como
+sentiment analysis podemos utilizar alg\'un set de datos que tenga frases o palabras con un
+sentimiento asociado y entrenar un algoritmo para que lo aprenda a detectar.
+
+Luego, otro algoritmo puede interpretar esos sentimientos y transformarlos en un valor 1-5.
+De esta forma podemos aprovechar una cantidad mayor de datos, agregando un paso intermedio. \cite{lexicons_db}
