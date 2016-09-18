@@ -87,3 +87,22 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+*.pyc
+*.sublime-project
+*.sublime-workspace
+
+# R
+.Rhistory
+
+# Latex
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lot
+*.out
+*.toc
+*.gz
