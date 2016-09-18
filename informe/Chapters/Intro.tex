@@ -1,0 +1,97 @@
+% Chapter Template
+
+\chapter{Introducci\'on} % Main chapter title
+
+\label{Chapter1}
+
+%----------------------------------------------------------------------------------------
+%   SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{An\'alisis de los datos}
+
+EL trabajo consiste en desarrollar un algoritmo que permita predecir el puntaje (1-5) que un usuario
+otorg\'o a un producto en base a su review (t\'itulo, texto, etc).
+
+Para ello, vamos a hacer enfoque en el campo del ``sentiment analysis'', que consiste en poder
+interpretar las emociones plasmadas en el texto.
+
+Comenzamos utilizando algoritmos simples que nos permitieran hacer un an\'alisis r\'apido de los
+datos, con el fin de poder estimar que tipos de algoritmos funcionan mejor, como preprocesar el
+texto de forma que los resultados mejoren, etc.
+
+%-----------------------------------
+%   SUBSECTION 1
+%-----------------------------------
+\subsection{Preprocesamiento del set de entrenamiento}
+
+Comenzamos por divir el set de entrenamiento en 3 partes:\\
+
+
+\begin{itemize}
+\setlength\itemsep{0em}
+  \item train: consiste en un 80\% del set original. Es utilizado para entrenar los algoritmos.
+  \item cv: consiste en un 10\% del set original. Es utilizado para ajustar los hiper par\'ametros de los
+        algoritmos y reducir el overfitting al set de entrenamiento.
+  \item test: consiste en el 10\% restante. Utilizado evaluar el desempe\~no final del algoritmo.
+\end{itemize}
+
+De esta forma podemos tener una estimaci\'on confiable sobre los resultados obtenidos sin necesidad
+de hacer varios submits a Kaggle.
+
+%-----------------------------------
+%   SUBSECTION 2
+%-----------------------------------
+
+\subsection{Preprocesamiento de los campos}
+
+Cada review contiene una serie de campos con informaci\'on sobre el mismo:\\
+
+\begin{itemize}
+\setlength\itemsep{0em}
+  \item Id - El id que identifica a cada review
+  \item ProductId - El Id del producto
+  \item UserId - El Id del usuario
+  \item ProfileName - El nombre del usuario
+  \item HelpfulnessNumerator - El numerador indicando la cantidad de usuarios que juzgaron al review como util
+  \item HelpfulnessDenominator - El denominador indicando la cantidad de usuarios que evaluaron si el review fue útil o no
+  \item Prediction - La cantidad de estrellas del review
+  \item Time - Un timestamp para el review
+  \item Summary - Un resumen del review
+  \item Text - Texto del review
+\end{itemize}
+
+Encontramos que exceptuando Text y Summary, poco aportan los otros campos (y algunas veces hasta
+entorpecen el aprendizaje).
+
+%----------------------------------------------------------------------------------------
+%   SECTION 2
+%----------------------------------------------------------------------------------------
+
+\section{Sentiment analysis}
+
+Los puntajes otorgados a cada review se basan en que tan satisfechos estuvieron los usuarios con
+el producto, por lo que los comentarios deber\'ian expresar cu\'al fue el sentimiento (alegr\'ia,
+enojo, frustraci\'on, etc) al recibirlo.
+
+Es por esto que consideramos que la finalidad de TP es basicamente hacer un sentiment analysis, y
+luego mapear los sentimientos al valor del review.
+
+En el sentiment analysis el preprocesamiento del texto juega un rol my importante para la gran
+mayor\'ia de los algoritmos \cite{importance_of_preprocessing}.
+
+El primer paso es la tokenizaci\'on, que consiste en separar el texto en palabras u otros s\'imbolos
+que pudan aparecer (URLs, emoticones, puntos, comas, tags HTML, etc) \cite{mining_twitter_data}.
+
+Los emoticones pueden jugar un rol importante, por lo que, para evitar perderlos y poder
+interpretarlos mejor, se puden reemplazar por alguna palabra, por ejemplo:
+
+\begin{itemize}
+\setlength\itemsep{0em}
+  \item :), :-) -> smile
+  \item :( -> sad
+  \item etc
+\end{itemize}
+
+Un paso bastante com\'un, es remover las llamadas ``stop words'', que son palabras muy comunes en
+los textos, y por lo general no aportan mucho al significado general de la oraci\'on \cite{stopwords}.
