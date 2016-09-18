@@ -35,7 +35,7 @@ def shuffle_by_label(df, label):
 
 def load_training_data(fname='data/train.csv'):
     # load data frame from the CSV file
-    data = pd.read_csv('data/train.csv')
+    data = pd.read_csv(fname)
 
     # split into train, cv and test sets
     splitted = (
