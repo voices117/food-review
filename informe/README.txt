@@ -3,6 +3,10 @@ Bibliografia
 
 Las citas a bibliografia se agregan en informe.bib (pueden tomar como ejemplo las que ya estan hechas)
 
+para referenciar la cita en el texto, ponen
+
+    \cite{nombre_de_la_referencia}
+
 
 Capitulos
 =========
