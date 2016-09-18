@@ -17,7 +17,7 @@ Para ello, vamos a hacer enfoque en el campo del ``sentiment analysis'', que con
 interpretar las emociones plasmadas en el texto.
 
 Comenzamos utilizando algoritmos simples que nos permitieran hacer un an\'alisis r\'apido de los
-datos, con el fin de poder estimar qu\'e tipos de algoritmos funcionan mejor, c\'mo preprocesar el
+datos, con el fin de poder estimar qu\'e tipos de algoritmos funcionan mejor, c\'omo preprocesar el
 texto de forma que los resultados mejoren, etc.
 
 %-----------------------------------
@@ -99,7 +99,7 @@ Además, para facilitar el reconocimiento de las palabras, es \'util realizar un
 En \'este, se busca unificar todas las palabras que tengan un mismo origen o ra\'iz. Esto si bien nos hace perder informaci\'on,
 también nos permite generalizar más facilmente.
 
-Por ejemplo, si un cliente hablara de cómo llega su producto, quizás se refiera en estos reviews a la palabra ``shipping''. O quizas hable de que el barco llegó lento y mencione ``ship''. Si bien son distintas, tienen una raíz que podría ser ``ship''. Lo mismo sucede con conjugaciones de verbos. Si alguien menciona que disfrutó la comida puede usar cualquier tiempo verbal. ``Enjoy'' ``Enjoyed'' ``Enjoying'', y carece de sentido tratar cada palabra por separado. Los sexos en sustantivos, y otras formas lingüisticas también llevan a otros arboles de palabras, que todas refieren al mismo concepto, o a la misma raíz.
+Por ejemplo, si un cliente hablara de cómo llega su producto, quizás se refiera en estos reviews a la palabra ``shipping''. O quizás hable de que el barco llegó lento y mencione ``ship''. Si bien son distintas, tienen una raíz que podría ser ``ship''. Lo mismo sucede con conjugaciones de verbos. Si alguien menciona que disfrutó la comida puede usar cualquier tiempo verbal. ``Enjoy'' ``Enjoyed'' ``Enjoying'', y carece de sentido tratar cada palabra por separado. Los sexos en sustantivos, y otras formas lingüisticas también llevan a otros arboles de palabras, que todas refieren al mismo concepto, o a la misma raíz.
 
 Es interesantes marcar que la raíz que usemos para agrupar, no tiene por qué ser necesariamente una palabra. Esto es útil porque en la práctica permite simplificar los algoritmos de stemming. \cite{word_stemming}
 
