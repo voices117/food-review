@@ -10,14 +10,14 @@
 
 \section{An\'alisis de los datos}
 
-EL trabajo consiste en desarrollar un algoritmo que permita predecir el puntaje (1-5) que un usuario
+El trabajo consiste en desarrollar un algoritmo que permita predecir el puntaje (1-5) que un usuario
 otorg\'o a un producto en base a su review (t\'itulo, texto, etc).
 
 Para ello, vamos a hacer enfoque en el campo del ``sentiment analysis'', que consiste en poder
 interpretar las emociones plasmadas en el texto.
 
 Comenzamos utilizando algoritmos simples que nos permitieran hacer un an\'alisis r\'apido de los
-datos, con el fin de poder estimar que tipos de algoritmos funcionan mejor, como preprocesar el
+datos, con el fin de poder estimar qu\'e tipos de algoritmos funcionan mejor, c\'mo preprocesar el
 texto de forma que los resultados mejoren, etc.
 
 %-----------------------------------
@@ -33,7 +33,7 @@ Comenzamos por divir el set de entrenamiento en 3 partes:\\
   \item train: consiste en un 80\% del set original. Es utilizado para entrenar los algoritmos.
   \item cv: consiste en un 10\% del set original. Es utilizado para ajustar los hiper par\'ametros de los
         algoritmos y reducir el overfitting al set de entrenamiento.
-  \item test: consiste en el 10\% restante. Utilizado evaluar el desempe\~no final del algoritmo.
+  \item test: consiste en el 10\% restante. Utilizado para evaluar el desempe\~no final del algoritmo.
 \end{itemize}
 
 De esta forma podemos tener una estimaci\'on confiable sobre los resultados obtenidos sin necesidad
@@ -74,35 +74,34 @@ Los puntajes otorgados a cada review se basan en que tan satisfechos estuvieron 
 el producto, por lo que los comentarios deber\'ian expresar cu\'al fue el sentimiento (alegr\'ia,
 enojo, frustraci\'on, etc) al recibirlo.
 
-Es por esto que consideramos que la finalidad de TP es basicamente hacer un sentiment analysis, y
+Es por esto que consideramos que la finalidad de TP es, basicamente, hacer un sentiment analysis, y
 luego mapear los sentimientos al valor del review.
 
-En el sentiment analysis el preprocesamiento del texto juega un rol my importante para la gran
+En el sentiment analysis el preprocesamiento del texto juega un rol muy importante para la gran
 mayor\'ia de los algoritmos \cite{importance_of_preprocessing}.
 
 El primer paso es la tokenizaci\'on, que consiste en separar el texto en palabras u otros s\'imbolos
-que pudan aparecer (URLs, emoticones, puntos, comas, tags HTML, etc) \cite{mining_twitter_data}.
+que puedan aparecer (URLs, emoticones, puntos, comas, tags HTML, etc) \cite{mining_twitter_data}.
 
-Los emoticones pueden jugar un rol importante, por lo que, para evitar perderlos y poder
-interpretarlos mejor, se puden reemplazar por alguna palabra, por ejemplo:
+Los emoticones son de suma importancia, por lo que, para evitar perderlos y poder
+interpretarlos mejor, se pueden reemplazar por alguna palabra, por ejemplo:
 
 \begin{itemize}
 \setlength\itemsep{0em}
   \item :), :-) -> smile
   \item :( -> sad
-  \item etc
 \end{itemize}
 
 Un paso bastante com\'un, es remover las llamadas ``stop words'', que son palabras muy comunes en
 los textos, y por lo general no aportan mucho al significado general de la oraci\'on \cite{stopwords}.
 
-Además, para facilitar el reconocimiento de las palabras, es util realizar un proceso conocido como stemming.
-En este, se busca unificar todas las palabras que tengan un mismo origen o raiz. Esto si bien nos hace perder informacion,
-también nos permite generalizar mas facilmente.
+Además, para facilitar el reconocimiento de las palabras, es \'util realizar un proceso conocido como stemming.
+En \'este, se busca unificar todas las palabras que tengan un mismo origen o ra\'iz. Esto si bien nos hace perder informaci\'on,
+también nos permite generalizar más facilmente.
 
-Por ejemplo, si un cliente hablara de como llega su producto, quizas se refiera en estos reviews a la palabra ``shipping''. O quizas hable de que el barco llego lento y mencione ``ship''.Si bien son distintas, tienen una raiz que podría ser ``ship''. Lo mismo sucede con conjugaciones de verbos. Si alguien menciona que disfruto la comida puede usar cualquier tiempo verbal. ``Enjoy'' ``Enjoyed'' ``Enjoying'', y carece de sentido tratar cada palabra por separado. Los sexos en sustantivos, y otras formas lingüisticas también llevan a otros arboles de palabras, que todas refieren al mismo concepto, o a la misma raiz.
+Por ejemplo, si un cliente hablara de cómo llega su producto, quizás se refiera en estos reviews a la palabra ``shipping''. O quizas hable de que el barco llegó lento y mencione ``ship''. Si bien son distintas, tienen una raíz que podría ser ``ship''. Lo mismo sucede con conjugaciones de verbos. Si alguien menciona que disfrutó la comida puede usar cualquier tiempo verbal. ``Enjoy'' ``Enjoyed'' ``Enjoying'', y carece de sentido tratar cada palabra por separado. Los sexos en sustantivos, y otras formas lingüisticas también llevan a otros arboles de palabras, que todas refieren al mismo concepto, o a la misma raíz.
 
-Es interesantes marcar que la raiz que usemos para agrupar, no tiene porque ser necesariamente una palabra. Esto es util porque en la práctica permite simplificar los algoritmos de stemming. \cite{word_stemming}
+Es interesantes marcar que la raíz que usemos para agrupar, no tiene por qué ser necesariamente una palabra. Esto es útil porque en la práctica permite simplificar los algoritmos de stemming. \cite{word_stemming}
 
 %----------------------------------------------------------------------------------------
 %   SECTION 3
@@ -110,7 +109,7 @@ Es interesantes marcar que la raiz que usemos para agrupar, no tiene porque ser 
 
 \section{Expandiendo el set de datos}
 
-Por lo general, obtener mas datos ayuda a mejorar el desempe\~no del algoritmo. Si bien no es
+Por lo general, obtener más datos ayuda a mejorar el desempe\~no del algoritmo. Si bien no es
 trivial generar texto o modificar ejemplos para obtener nuevos, al considerar el problema como
 sentiment analysis podemos utilizar alg\'un set de datos que tenga frases o palabras con un
 sentimiento asociado y entrenar un algoritmo para que lo aprenda a detectar.
