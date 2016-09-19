@@ -1,0 +1,53 @@
+% Chapter Template
+
+\chapter{Desarrollo} % Main chapter title
+
+\label{Desarrollo} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+%----------------------------------------------------------------------------------------
+%   SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Algoritmos usados}
+
+Para comenzar, se decidió hacer uso de algoritmos simples y ver el resultado obtenido para poder
+compararlos y decidir cuál de todos profundizar.
+
+Las pruebas se realizaron con los subsets obtenidos de dividir el set original, como se explicó en
+la introducción.
+
+%-----------------------------------
+%   SUBSECTION 1
+%-----------------------------------
+\subsection{KNN}
+
+Uno de los primeros algoritmos a evaluar fue KNN. Para calcular las distancias, se decidió encodear
+los textos en un DTM utilizando una biblioteca de R \cite{dtm_for_sentiment_analysis}.
+
+Previa a la creación de la matriz, se hizo una limpieza del texto, removiendo stop-words, puntuaciones
+HTML, etc.
+
+Se comenzó probando con una porción muy pqueña del set (5\%), y se incrementó el tamaño en las pruebas
+subsiguientes.
+
+Al llegar a aproximadamente un 15\% del set, el algoritmo era demasiado lento para clasificar (algunas
+horas), y no daba buenos resultados, por lo que se decidió probar otra alternativa.
+
+Probablemente se pueda implementar mas adelante utilizando doc2vec, lo que debería reducir las
+dimensiones de los textos, y además dar resultados más precisos debido a la natureleza de los
+vectores generados (más similares al ser más parecidos).
+
+%-----------------------------------
+%   SUBSECTION 2
+%-----------------------------------
+
+\subsection{Random forest}
+
+Este algritmo se comportó bastante mejor que KNN, ya que su tiempo de entrenamiento/clasificación
+era muy inferior, pero los resultados no fueron demasido buenos para predecir calificaciones menores
+a 3. 
+
+Si bien la idea fue tomada de \cite{random_forest_movie_reviews}, se convirtieron los textos a un
+bag of words y luego se la utilizó para entrenar el forest.
+
+Se puede analizar más adelante aplicar una técnica similar a la del artículo citado.
