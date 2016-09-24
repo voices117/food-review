@@ -7,10 +7,7 @@ c3 <- c(1,0,0,2,2)
 c4 <- c(0,2,1,0,2)
 
 m <- as.matrix(c1)
-m <- cbind(m, c1)
-m <- cbind(m, c2)
-m <- cbind(m, c3)
-m <- cbind(m, c4)
+m <- cbind(m, c2, c3, c4)
 dimnames(m) <- NULL
 
 #Calculado la dvs, con K columnas de V y U
