@@ -1,38 +1,89 @@
 library(NLP)
 library(tm)
 library(nnet)
+library(SnowballC)
 library(dplyr)
-#Trabajo con pocos datos para testear, dummy test
-set.seed(123)
-#Tiro datos ya desde un inicio, esto es para acelerar pruebas. 
-#Se puede poner en 1 o comentar para no tirar
+library(slam)
 
-preProcesado<-sample_frac(trainPreProcesado, 0.5)
+ptmInicial <- proc.time()
 
-corpus <- Corpus(VectorSource(preProcesado$Text))
+modeloLineal = TRUE;
+#454760 es el tamanio del set original de train
+MAX_DATA <- 454760
+#testResults <- matrix(nrow = 8, ncol = 3)
+
+load(file = "trainTest.rdata")
+trainTestText <- trainTest$Text
+rm(trainTest)
+corpus <- Corpus(VectorSource(trainTestText))
+rm(trainTestText)
 #Actualmente usa TF, puede cambiarse por TF-IDF
-dtm <- DocumentTermMatrix(corpus, control = list(weighting = function(x) weightTfIdf(x, normalize = FALSE)))
+dtm <- DocumentTermMatrix(corpus, control = list(weighting = function(x) weightTf(x)))
+
 #Con 0.99 quedan mas o menos 650 terminos. Con mas empiezo a tener problemas de memoria
 rm(corpus)
 dtmr <- removeSparseTerms(dtm, 0.99)
 rm(dtm)
+
+#Busco los datos que necesito para estandarizar la matriz
+media <- col_means(dtmr)
+varianza <- colapply_simple_triplet_matrix(dtmr, FUN = var)
+desvio <- sqrt(varianza)
 m <- as.matrix(dtmr)
-#Normalizo
-  m <- scale(m)
-  
-#Preparo el train, va a ser chico para que alcance la memoria y el tiempo
-set.seed(123)
-filasTrain <- sample(nrow(m), size = floor(nrow(m)*0.5))
+#scale(m)
+m[1:ncol(m),] <- m[1:ncol(m),] - media[1:ncol(m)]
+m[1:ncol(m),] <- m[1:ncol(m),] / desvio[1:ncol(m)]
+
+dtmr <- as.simple_triplet_matrix(m)
+
+#Me quedo unicamente con lo que voy a usar para entrenar y testear
+rm(media,varianza,desvio)
+save(dtmr, file = "dtmrTemp.RData")
+rm(dtmr)
+
+#Saco los datos del train de kaggle de la memoria
+m <- m[1:MAX_DATA,]
+
+#Preparo el train
+set.seed(345)
+filasTrain <- sample(nrow(m), size = floor(nrow(m)*0.9))
 train <- m[filasTrain,]
-
+#Dejo unicamente el train, el test lo puedo recuperar mas adelante
+rm(m)
 #Armo el vector Y para ajustar
-trainY <- preProcesado[filasTrain,]$Prediction
-#Nota: La Y no es necesario normalizarla en una red Neuronal. Asi lo lei en varios sitios
-nn <- nnet(train, trainY, size = 1, linout = TRUE)
+trainOriginal <- read.csv(file = "train.csv")
+trainY <- trainOriginal[filasTrain,]$Prediction
+rm(trainOriginal)
 
-#Libero la memoria del train, y me quedo con el test
-rm(train)
+ptmFinal <- proc.time()
+
+if(modeloLineal){
+  nn <- nnet(train, trainY, size = 1, linout = TRUE, maxit = i*100)
+}else{
+  trainYb <- matrix(nrow = length(trainY), ncol = 5)
+  for(i in 1:5){
+    trainYb[,i] <- ifelse(trainY == i,1,0)
+  }
+  trainY <- trainYb
+  rm(trainYb)
+  nn <- nnet(train, trainY, size = 1, linout = FALSE, MaxNWts = 10000, skip = T)
+}
+
+#rm(train)
 test <- m[-filasTrain,]
 #Me quedo con el test
 prediction <- predict(nn, test)
-head(prediction)
+
+if(modeloLineal){
+  acertados <- sum(round(prediction) == preProcesado[-filasTrain,]$Prediction)
+  total <- length(preProcesado[-filasTrain,]$Prediction)
+  cat("Test: ",(acertados/total)*100, "%")
+  
+  prediction <- predict(nn, train)
+  acertados <- sum(round(prediction) == preProcesado[filasTrain,]$Prediction)
+  total <- length(preProcesado[filasTrain,]$Prediction)
+  cat("Train:: ",(acertados/total)*100, "%")
+  testResults[i,] <- cbind(acertados,total, acertados/total)
+  write.csv(testResults, file = "testResults.csv")
+}
+
