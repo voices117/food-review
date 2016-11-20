@@ -2,6 +2,7 @@
 Converts the text data into a sequence of 1 hot encoded vectors for each
 """
 
+import pdb
 import re
 import sys
 import string
@@ -111,6 +112,31 @@ def batch_generator(df, encoder, batch_size, force_batch_size=False, shuffle=Tru
             yield encoder(batch)
 
 
+def balanced_batch_generator(df, encoder, batch_size, force_batch_size=False, shuffle=True):
+    """Similar to `batch_generator` but  balances the epoch batches so the 5 start reviews are not
+    so dominant."""
+
+    while True:
+        rating5 = df[df['Prediction'] == 5]
+        idx5 = list(rating5.index)
+        random.shuffle(idx5)
+
+        for r5batch in chunker(idx5, len(idx5) / 4):
+            non5 = df[df['Prediction'] != 5]
+
+            idx = list(non5.index) + list(r5batch)
+            if shuffle:
+                random.shuffle(idx)
+
+            if len(idx) % batch_size and force_batch_size:
+                missing_elems = batch_size - (len(idx) % batch_size)
+                idx += idx[:missing_elems]
+
+            for batch_idx in chunker(idx, batch_size):
+                batch = df.ix[batch_idx]
+                yield encoder(batch)
+
+
 def one_hot(text, alphabet):
     """Does a one hot encoding of the text.
     The values of each character go from 1 to len(alphabet)"""
@@ -122,7 +148,7 @@ def one_hot(text, alphabet):
     return map(lambda e: char_to_int[e], text)
 
 
-def get_alphabet(df):
+def get_alphabet(df, alphabet):
     alphabet = set()
     for text in df['Text']:
         alphabet |= set(text)
@@ -265,6 +291,60 @@ def encode_unlabeled_data_words(df, alphabet, maxlen=400):
     return train_data
 
 
+def get_embed_alphabet(df):
+    alphabet = {}
+    stop = stopwords.words('english')
+    c = [1]
+
+    def get_alph(text):
+        tokens = word_tokenize(text)
+        for token in tokens:
+            if token not in alphabet:
+                alphabet[token] = c[0]
+                c[0] += 1
+
+    df['Text'].apply(get_alph)
+    return alphabet
+
+
+def encode_embed(df, maxlen, alphabet=None, labeled=True, categorical=False):
+    words = alphabet or {}
+    stop = stopwords.words('english')
+
+    def text2vec(text):
+        output = []
+        tokens = word_tokenize(text)
+
+        for token in tokens:
+            #if token in stop:
+            #    continue
+
+            encoded = alphabet.get(token, 0)
+            output.append(encoded)
+
+        # clips or pads the output to the max length
+        if len(output) < maxlen:
+            output = [0] * (maxlen - len(output)) + output
+        elif len(output) > maxlen:
+            output = output[:maxlen]
+
+        return np.asarray(output, dtype='float32').reshape(1, maxlen)
+
+    X = df['Text'].apply(text2vec)
+    X = np.asarray(list(X)).reshape((len(df), maxlen))
+
+    if labeled:
+        if categorical:
+            preds = np.asarray(df['Prediction'] - 1)
+            y = np_utils.to_categorical(preds, 5)
+        else:
+            y = (df['Prediction'] - 1) / 4
+            y = np.asarray(y)
+        return X, y
+    else:
+        return X
+
+
 def get_w2v(filename):
     """Gets the decoded word2vec dictionary from `filename`.
     Returns a dict containing for each word, the corresponding numpy ndarray."""
@@ -325,7 +405,8 @@ def encode_w2v(df, w2v, maxlen=450, labeled=True, categorical=False):
 
     if labeled:
         if categorical:
-            y = np_utils.to_categorical(df['Prediction'] - 1)
+            preds = np.asarray(df['Prediction'] - 1)
+            y = np_utils.to_categorical(preds, 5)
         else:
             y = (df['Prediction'] - 1) / 4
             y = np.asarray(y)

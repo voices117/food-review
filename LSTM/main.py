@@ -18,7 +18,7 @@ np.random.seed(4321)
 random.seed(4321)
 
 import data_init
-from data_init import batch_generator
+from data_init import batch_generator, balanced_batch_generator
 
 from keras.models import Sequential
 from keras.models import load_model
@@ -97,9 +97,9 @@ def model2(maxlen, batch_size, num_epochs, w2v, traindf, cvdf):
     return model, train_gen, cv_gen, nb_val_samples
 
 
-def model3(maxlen, batch_size, num_epochs, w2v, traindf, cvdf):
+def model3(maxlen, batch_size, num_epochs, w2v, traindf, cvdf, categorical=False):
     def encoder(b):
-        encoded_x, encoded_y = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen)
+        encoded_x, encoded_y = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen, categorical=categorical)
         return [[encoded_x, encoded_x, encoded_x], encoded_y]
 
     train_gen = batch_generator(df=traindf,
@@ -108,7 +108,8 @@ def model3(maxlen, batch_size, num_epochs, w2v, traindf, cvdf):
                                 force_batch_size=True)
     cv_gen = batch_generator(df=cvdf,
                              encoder=encoder,
-                             batch_size=batch_size)
+                             batch_size=batch_size,
+                             shuffle=False)
 
     # creates the neural network consisting in 3 convolutional layers going to an LSTM layer
     model1 = Sequential()
@@ -145,10 +146,119 @@ def model3(maxlen, batch_size, num_epochs, w2v, traindf, cvdf):
     model.add(Merge([model1, model2, model3], mode='sum', concat_axis=1))
     model.add(LSTM(60))
     model.add(Dropout(0.5))
-    model.add(Dense(1, activation='sigmoid'))
 
-    # compiles the model
-    model.compile('adam', 'binary_crossentropy', metrics=['accuracy', 'mse'])
+    if categorical:
+        model.add(Dense(5, activation='softmax'))
+        model.compile('rmsprop', 'categorical_crossentropy', metrics=['accuracy', 'mse'])
+    else:
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile('adam', 'binary_crossentropy', metrics=['accuracy', 'mse'])
+
+    nb_val_samples = len(cvdf)
+    return model, train_gen, cv_gen, nb_val_samples
+
+
+def model4(maxlen, batch_size, num_epochs, w2v, traindf, cvdf, categorical=False):
+    def encoder(b):
+        encoded_x, encoded_y = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen, categorical=categorical)
+        return [[encoded_x, encoded_x, encoded_x], encoded_y]
+
+    train_gen = balanced_batch_generator(df=traindf,
+                                         encoder=encoder,
+                                         batch_size=batch_size,
+                                         force_batch_size=True)
+    cv_gen = batch_generator(df=cvdf,
+                             encoder=encoder,
+                             batch_size=batch_size,
+                             shuffle=False)
+
+    # creates the neural network consisting in 3 convolutional layers going to an LSTM layer
+    model1 = Sequential()
+    model1.add(Convolution1D(310, 6, border_mode='valid', activation='relu', input_shape=(maxlen, 300)))
+    model1.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model1.add(Dropout(0.5))
+    model1.add(Convolution1D(100, 3, border_mode='valid', activation='relu'))
+    model1.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model1.add(Dropout(0.5))
+    model1.add(LSTM(60, return_sequences=True))
+    model1.add(Dropout(0.5))
+
+    model2 = Sequential()
+    model2.add(Convolution1D(310, 5, border_mode='valid', activation='relu', input_shape=(maxlen, 300)))
+    model2.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model2.add(Dropout(0.5))
+    model2.add(Convolution1D(100, 3, border_mode='valid', activation='relu'))
+    model2.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model2.add(Dropout(0.5))
+    model2.add(LSTM(60, return_sequences=True))
+    model2.add(Dropout(0.5))
+
+    model3 = Sequential()
+    model3.add(Convolution1D(310, 4, border_mode='valid', activation='relu', input_shape=(maxlen, 300)))
+    model3.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model3.add(Dropout(0.5))
+    model3.add(Convolution1D(100, 3, border_mode='valid', activation='relu'))
+    model3.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+    model3.add(Dropout(0.5))
+    model3.add(LSTM(60, return_sequences=True))
+    model3.add(Dropout(0.5))
+
+    model = Sequential()
+    model.add(Merge([model1, model2, model3], mode='sum', concat_axis=1))
+    model.add(LSTM(60))
+    model.add(Dropout(0.5))
+
+    if categorical:
+        model.add(Dense(5, activation='softmax'))
+        model.compile('rmsprop', 'categorical_crossentropy', metrics=['accuracy', 'mse'])
+    else:
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile('adam', 'binary_crossentropy', metrics=['accuracy', 'mse'])
+
+    nb_val_samples = len(cvdf)
+    return model, train_gen, cv_gen, nb_val_samples
+
+
+def model5(maxlen, batch_size, num_epochs, alphabet, traindf, cvdf, categorical=False):
+    def encoder(b):
+        encoded_x, encoded_y = data_init.encode_embed(df=b, alphabet=alphabet, maxlen=maxlen, categorical=categorical)
+        return [[encoded_x, encoded_x, encoded_x], encoded_y]
+
+    train_gen = balanced_batch_generator(df=traindf,
+                                         encoder=encoder,
+                                         batch_size=batch_size,
+                                         force_batch_size=True)
+    cv_gen = batch_generator(df=cvdf,
+                             encoder=encoder,
+                             batch_size=batch_size,
+                             shuffle=False)
+
+    # creates the neural network consisting in 3 convolutional layers going into an LSTM layer
+    inputs = []
+    for filter_size in (6, 5, 4):
+        model1 = Sequential()
+        model1.add(Embedding(30000, 100, input_length=maxlen))
+        model1.add(Convolution1D(310, filter_size, border_mode='valid', activation='relu'))
+        model1.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+        model1.add(Dropout(0.5))
+        model1.add(Convolution1D(100, 3, border_mode='valid', activation='relu'))
+        model1.add(MaxPooling1D(pool_length=3, border_mode='valid'))
+        model1.add(Dropout(0.5))
+        model1.add(LSTM(60, return_sequences=True))
+        model1.add(Dropout(0.5))
+        inputs.append(model1)
+
+    model = Sequential()
+    model.add(Merge(inputs, mode='sum', concat_axis=1))
+    model.add(LSTM(60))
+    model.add(Dropout(0.5))
+
+    if categorical:
+        model.add(Dense(5, activation='softmax'))
+        model.compile('rmsprop', 'categorical_crossentropy', metrics=['accuracy', 'mse'])
+    else:
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile('adam', 'binary_crossentropy', metrics=['accuracy', 'mse'])
 
     nb_val_samples = len(cvdf)
     return model, train_gen, cv_gen, nb_val_samples
@@ -247,7 +357,7 @@ if __name__ == '__main__':
 
         # trains the model
         print('Training model...')
-        train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
+        history = train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
 
         # generates the output file
         print('Getting predictions...')
@@ -268,11 +378,12 @@ if __name__ == '__main__':
         print(len(traindf), 'train sequences')
         print(len(cvdf), 'cv sequences')
 
+        categorical = False  # if True, the problem is treated as a classification instead of a regression
         maxlen = 400  # all texts are set to this length (either padding or truncating them)
         batch_size = 50  # training batch size
-        nn_name = 'w2v-conv2-lstm-X3-regression'  # name of the NN (used for saving the model and logs)
-        num_epochs = 70  # number of epochs to train
-        samples_per_epoch = len(traindf) / 35  # texts used in each epoch
+        nn_name = 'w2v-conv2-lstm-X3-%s' % 'categorical' if categorical else 'regression'  # name of the NN (used for saving the model and logs)
+        num_epochs = 50  # number of epochs to train
+        samples_per_epoch = len(traindf) / 25  # texts used in each epoch
 
         # loads the word2vec model
         print('Loading w2v...')
@@ -285,18 +396,106 @@ if __name__ == '__main__':
                                                           num_epochs=num_epochs,
                                                           w2v=w2v,
                                                           traindf=traindf,
-                                                          cvdf=cvdf)
+                                                          cvdf=cvdf,
+                                                          categorical=categorical)
 
         # trains the model
         print('Training model...')
-        train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
+        history = train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
 
         # generates the output file
         print('Getting predictions...')
         testdf = pd.read_csv('../data/test.csv')
         testdf = data_init.clean_df(testdf, labeled=False)
         def test_encoder(b):
-            encoded = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen, labeled=False)
+            encoded = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen, labeled=False, categorical=categorical)
+            return [encoded, encoded, encoded]
+
+        data_init.output_results(model, testdf, test_encoder, batch_size)
+
+    elif '--w2v-4' in sys.argv:
+        # loads the train and Cross-Validation DataFrames
+        print('Loading data...')
+        traindf = pd.read_csv('data/train.csv')
+        cvdf = pd.read_csv('data/cv.csv')
+
+        print(len(traindf), 'train sequences')
+        print(len(cvdf), 'cv sequences')
+
+        categorical = False  # if True, the problem is treated as a classification instead of a regression
+        maxlen = 400  # all texts are set to this length (either padding or truncating them)
+        batch_size = 50  # training batch size
+        nn_name = 'w2v-conv2-lstm-X3-balanced-%s' % 'categorical' if categorical else 'regression'  # name of the NN (used for saving the model and logs)
+        num_epochs = 50  # number of epochs to train
+        samples_per_epoch = len(traindf) / 25  # texts used in each epoch
+
+        # loads the word2vec model
+        print('Loading w2v...')
+        w2v = data_init.get_w2v('pretrained/GoogleNews-vectors-negative300.bin')
+
+        # generates the model
+        print('Getting model 3...')
+        model, train_gen, cv_gen, nb_val_samples = model4(maxlen=maxlen,
+                                                          batch_size=batch_size,
+                                                          num_epochs=num_epochs,
+                                                          w2v=w2v,
+                                                          traindf=traindf,
+                                                          cvdf=cvdf,
+                                                          categorical=categorical)
+
+        # trains the model
+        print('Training model...')
+        history = train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
+
+        # generates the output file
+        print('Getting predictions...')
+        testdf = pd.read_csv('../data/test.csv')
+        testdf = data_init.clean_df(testdf, labeled=False)
+        def test_encoder(b):
+            encoded = data_init.encode_w2v(df=b, w2v=w2v, maxlen=maxlen, labeled=False, categorical=categorical)
+            return [encoded, encoded, encoded]
+
+        data_init.output_results(model, testdf, test_encoder, batch_size)
+
+    elif '--embed':
+        # loads the train and Cross-Validation DataFrames
+        print('Loading data...')
+        traindf = pd.read_csv('data/train.csv')
+        cvdf = pd.read_csv('data/cv.csv')
+
+        print(len(traindf), 'train sequences')
+        print(len(cvdf), 'cv sequences')
+
+        categorical = False  # if True, the problem is treated as a classification instead of a regression
+        maxlen = 400  # all texts are set to this length (either padding or truncating them)
+        batch_size = 50  # training batch size
+        nn_name = 'embed-conv2-lstm-X3-balanced-%s' % 'categorical' if categorical else 'regression'  # name of the NN (used for saving the model and logs)
+        num_epochs = 40  # number of epochs to train
+        samples_per_epoch = len(traindf) / 20  # texts used in each epoch
+
+        alphabet = data_init.get_embed_alphabet(traindf)
+        print 'Found %s different words' % len(alphabet)
+
+        # generates the model
+        print('Getting model 3...')
+        model, train_gen, cv_gen, nb_val_samples = model5(maxlen=maxlen,
+                                                          alphabet=alphabet,
+                                                          batch_size=batch_size,
+                                                          num_epochs=num_epochs,
+                                                          traindf=traindf,
+                                                          cvdf=cvdf,
+                                                          categorical=categorical)
+
+        # trains the model
+        print('Training model...')
+        history = train(model, nn_name, samples_per_epoch, num_epochs, train_gen, cv_gen, nb_val_samples)
+
+        # generates the output file
+        print('Getting predictions...')
+        testdf = pd.read_csv('../data/test.csv')
+        testdf = data_init.clean_df(testdf, labeled=False)
+        def test_encoder(b):
+            encoded = data_init.encode_embed(df=b, alphabet=alphabet, maxlen=maxlen, labeled=False, categorical=categorical)
             return [encoded, encoded, encoded]
 
         data_init.output_results(model, testdf, test_encoder, batch_size)
