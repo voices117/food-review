@@ -1,0 +1,8 @@
+En R
+
+Lineal
+	set.seed(123)
+	preProcesado<-sample_frac(trainPreProcesado, 0.6)
+	nnet size 1. Train 0.8. 100 iteraciones
+
+Lento, redondeando. 71,23% en el train. 14,2 en el test
